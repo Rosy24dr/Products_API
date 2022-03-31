@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Product
 from .serializers import ProductSerializer
+from products import serializers
 
 
 @api_view(['GET', 'POST'])
@@ -10,11 +11,21 @@ def products_lists(request):
 
     if request.method == 'GET':
         products = Product.objects.all()
-        serializers = ProductSerializer(products, many = True)
-        return Response(serializers.data, status=status.HTTP_200_OK)
+        serializer = ProductSerializer(products, many = True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     elif request.method == 'POST':
-        serializers = ProductSerializer(data=request.data)
-        serializers.is_valid(raise_exception=True)
-        serializers.save()
-        return Response(serializers.data, status=status.HTTP_201_CREATED)
+        serializer = ProductSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+@api_view(['GET'])
+def products_detail(request,pk):
+    try: 
+        product = Product.objects.get(pk=pk)
+        serializer = ProductSerializer(product)
+        return Response(serializer.data, status = status.HTTP_200_OK)
+    except Product.DoesNotExist:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    
